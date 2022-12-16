@@ -6,8 +6,6 @@ const sequelize = require("./sequelize")
 const Proiect = require("./models/Proiect");
 const Bug = require("./models/Bug");
 const MembruEchipa = require("./models/MembruEchipa");
-const { noExtendRight } = require("sequelize/types/lib/operators");
-const { application } = require("express");
 const app = express();
 Proiect.hasMany(Bug);
 Proiect.hasMany(MembruEchipa);
