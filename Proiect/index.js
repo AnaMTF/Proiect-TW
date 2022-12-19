@@ -105,11 +105,25 @@ app.get("/create", async (req, res, next) => {
     }
   }); 
 
+
+  /**
+ * GET toate bug-urile din baza de date
+ */
+
+  app.get("/bugs", async (req, res, next) => {
+    try {
+      const bugs = await Bug.findAll();
+      res.status(200).json(bugs);
+    } catch (err) {
+      next(err);
+    }
+  });
+
 /**
  * POST un membru nou al echipei intr-un proiect
  */
 
-  app.post("/proiecte/:proiectId/membriiEchipa", async (req, res, next) => {
+  app.post("/proiecte/:proiectId/membruEchipa", async (req, res, next) => {
     try {
       const proiect = await Proiect.findByPk(req.params.proiectId);
       if (proiect) {
@@ -117,6 +131,27 @@ app.get("/create", async (req, res, next) => {
         membruEchipa.proiectId = proiect.id;
         await membruEchipa.save();
         res.status(201).json({ message: 'Membrrul echipei a fost adaugat!'});
+      } else {
+        res.status(404).json({ message: '404 - Proiectul nu a fost gasit!'});
+      }
+    } catch (error) {
+      next(error);
+    }
+  });
+
+
+  /**
+ * POST un nou bug intr-un proiect
+ */
+
+  app.post("/proiecte/:proiectId/Bug", async (req, res, next) => {
+    try {
+      const proiect = await Proiect.findByPk(req.params.proiectId);
+      if (proiect) {
+        const bug = new Bug(req.body);
+        bug.proiectId = proiect.id;
+        await bug.save();
+        res.status(201).json({ message: 'Bug-ul a fost adaugat!'});
       } else {
         res.status(404).json({ message: '404 - Proiectul nu a fost gasit!'});
       }
@@ -145,9 +180,30 @@ app.get("/create", async (req, res, next) => {
     }
   });
 
+
+ /**
+ * GET toate bug-urile dintr-un proiect folosind include
+ */
+
+ app.get("/proiecte/:proiectId/bugs", async (req, res, next) => {
+  try {
+      const proiect = await Proiect.findByPk(req.params.proiectId, {
+      include: [Bug]
+    });
+    if (proiect) {
+      res.status(200).json(proiect.bug);
+    } else {
+      res.status(404).json({ message: '404 - Proiectul nu a fost gasit!'});
+    }
+  } catch(error) {
+    next(error);
+  }
+});
+
   /**
  * PUT pentru a actualiza un membru al echipei dintr-un proiect
  */
+
 app.put("/proiecte/:proiectId/membriiEchipa/:membruEchipaId", async (req, res, next) => {
   try {
     const proiect = await Proiect.findByPk(req.params.proiectId);
@@ -172,9 +228,39 @@ app.put("/proiecte/:proiectId/membriiEchipa/:membruEchipaId", async (req, res, n
 });
 
 
+  /**
+ * PUT pentru a actualiza un bug dintr-un proiect
+ */
+
+  app.put("/proiecte/:proiectId/bugs/:bugId", async (req, res, next) => {
+    try {
+      const proiect = await Proiect.findByPk(req.params.proiectId);
+      if (proiect) {
+        const bugs = await proiect.getBugs({ id: req.params.bugId });
+        const bug = bugs.shift();
+        if (bug) {
+          bug.numeBug = req.body.numeBug;
+          bug.descriereBug = req.body.descriereBug;
+          bug.severitateBug = req.body.severitateBug;
+          bug.prioritateBug = req.body.prioritateBug;
+          await bug.save();
+          res.status(202).json({ message: 'Bug-ul a fost actualizat cu succes!' });
+        } else {
+          res.status(404).json({ message: '404 - Bug-ul nu a fost gasit!'});
+        }
+      } else {
+        res.status(404).json({ message: '404 - Proiectul nu a fost gasit!'});
+      }
+    } catch (error) {
+      next(error);
+    }
+  });
+
+
 /**
  * GET un membru al echipei dupa id dintr-o echipa anume dupa id
  */
+
 app.get('/proiecte/:proiectId/membriiEchipa/:membruEchipaId', async (req, res, next) => {
   try {
     const proiect = await Proiect.findByPk(req.params.proiectId);
@@ -194,9 +280,34 @@ app.get('/proiecte/:proiectId/membriiEchipa/:membruEchipaId', async (req, res, n
   }
 });
 
+
+/**
+ * GET un bug dupa id dintr-o echipa anume dupa id
+ */
+
+app.get('/proiecte/:proiectId/bugs/:bugId', async (req, res, next) => {
+  try {
+    const proiect = await Proiect.findByPk(req.params.proiectId);
+    if (proiect) {
+      const bugs = await proiect.getBugs({ id: req.params.bugId });
+      const bug = bugs.shift();
+      if (bug) {
+        res.status(202).json(bug);
+      } else {
+        res.status(404).json({ message: '404 - Bug-ul nu a fost gasit!' })
+      }
+    } else {
+      res.status(404).json({ message: '404 - Proiectul nu a fost gasit!' })
+    }
+  } catch (err) {
+    next(err);
+  }
+});
+
 /**
  * DELETE un membru al echipei dintr-un proiect
  */
+
 app.delete('/proiecte/:proiectId/membriiEchipa/:membruEchipaId', async (req, res, next) => {
   try {
     const proiect = await Proiect.findByPk(req.params.proiectId);
@@ -212,6 +323,51 @@ app.delete('/proiecte/:proiectId/membriiEchipa/:membruEchipaId', async (req, res
     } else {
       res.status(404).json({ message: '404 - Proiectul nu a fost gasit!' })
     }
+  } catch (err) {
+    next(err);
+  }
+});
+
+
+/**
+ * DELETE un bug dintr-un proiect
+ */
+
+app.delete('/proiecte/:proiectId/bugs/:bugId', async (req, res, next) => {
+  try {
+    const proiect = await Proiect.findByPk(req.params.proiectId);
+    if (proiect) {
+      const bugs = await proiect.getBugs({ id: req.params.bugId });
+      const bug = bugs.shift();
+      if (bug) {
+        await bug.destroy()
+        res.status(202).json({ message: 'Bug-ul a fost sters cu succes!'})
+      } else {
+        res.status(404).json({ message: '404 - Bug-ul nu a fost gasit!' })
+      }
+    } else {
+      res.status(404).json({ message: '404 - Proiectul nu a fost gasit!' })
+    }
+  } catch (err) {
+    next(err);
+  }
+});
+
+
+/**
+ * DELETE un proiect
+ */
+
+app.delete('/proiecte/:proiectId', async (req, res, next) => {
+  try {
+    const proiecte = await proiect.getProiect({ id: req.params.proiectId });
+    const proiect = proiecte.shift();
+    if (proiect) {
+      await proiect.destroy()
+        res.status(202).json({ message: 'Proiectul a fost sters cu succes!'})
+      } else {
+        res.status(404).json({ message: '404 - Proiectul nu a fost gasit!' })
+      }
   } catch (err) {
     next(err);
   }
