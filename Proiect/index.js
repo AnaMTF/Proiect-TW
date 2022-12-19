@@ -1,16 +1,25 @@
 "use strict";
 
 // require("dotenv").config();
+
+// Initializare Express
 const express = require("express");
+const app = express();
+const port = 8000;
+
+// Initializare Sequelize
 const sequelize = require("./sequelize")
+
+//Importare modele
 const Proiect = require("./models/Proiect");
 const Bug = require("./models/Bug");
 const MembruEchipa = require("./models/MembruEchipa");
-const app = express();
+
+//Definire relatie intre modele
 Proiect.hasMany(Bug);
 Proiect.hasMany(MembruEchipa);
 
-
+//Express middleware
 app.use(
     express.urlencoded({
         extended: true,
@@ -20,14 +29,18 @@ app.use(express.json());
 
 app.use("/api",require("./routes/Bug"));
 
+
+//middleware pentru eroare 500
 app.use((err,req,res,next)=>{
     res.status(500).json({error: "Nu a functionat."})
 })
 
 app.set("port",process.env.PORT || 8000);
 
+
+//Pornire server
 app.listen(8000, async ()=>{
-    console.log("Serverul http://localhost:8000");
+    console.log("Serverul http://localhost:"+port+" ruleaza");
     try{
         await sequelize.authenticate();
         console.log("Conexiunea a avut succes!")
@@ -36,6 +49,11 @@ app.listen(8000, async ()=>{
         console.log("Conexiunea la baza de date a esuat",err);
     }
 });
+
+
+/**
+ * GET pentru a sincroniza modelele cu baza de date
+ */
 
 app.get("/create", async (req, res, next) => {
     try {
@@ -46,6 +64,11 @@ app.get("/create", async (req, res, next) => {
     }
   });
 
+
+/**
+ * GET toate proiectele din baza de date
+ */
+
   app.get("/proiecte", async (req, res, next) => {
     try {
       const proiecte = await Proiect.findAll();
@@ -54,6 +77,11 @@ app.get("/create", async (req, res, next) => {
       next(err);
     }
   });
+
+
+  /**
+ * POST un nou proiect in baza de date
+ */
 
   app.post("/proiect", async (req, res, next) => {
     try {
@@ -64,6 +92,10 @@ app.get("/create", async (req, res, next) => {
     }
   });
 
+/**
+ * GET toti membrii echipei
+ */
+
   app.get("/membriiEchipa", async (req, res, next) => {
     try {
       const membriiEchipa = await MembruEchipa.findAll();
@@ -73,9 +105,13 @@ app.get("/create", async (req, res, next) => {
     }
   }); 
 
-  app.post("/proiecte/:proiecteId/membriiEchipa", async (req, res, next) => {
+/**
+ * POST un membru nou al echipei intr-un proiect
+ */
+
+  app.post("/proiecte/:proiectId/membriiEchipa", async (req, res, next) => {
     try {
-      const proiect = await Proiect.findByPk(req.params.universityId);
+      const proiect = await Proiect.findByPk(req.params.proiectId);
       if (proiect) {
         const membruEchipa = new MembruEchipa(req.body);
         membruEchipa.proiectId = proiect.id;
@@ -89,9 +125,14 @@ app.get("/create", async (req, res, next) => {
     }
   });
 
-  app.get("/proiecte/:proiecteId/membriiEchipa", async (req, res, next) => {
+
+  /**
+ * GET toti membrii echipei dintr-un proiect folosind include
+ */
+
+  app.get("/proiecte/:proiectId/membriiEchipa", async (req, res, next) => {
     try {
-        const proiect = await Proiect.findByPk(req.params.universityId, {
+        const proiect = await Proiect.findByPk(req.params.proiectId, {
         include: [MembruEchipa]
       });
       if (proiect) {
@@ -103,3 +144,75 @@ app.get("/create", async (req, res, next) => {
       next(error);
     }
   });
+
+  /**
+ * PUT pentru a actualiza un membru al echipei dintr-un proiect
+ */
+app.put("/proiecte/:proiectId/membriiEchipa/:membruEchipaId", async (req, res, next) => {
+  try {
+    const proiect = await Proiect.findByPk(req.params.proiectId);
+    if (proiect) {
+      const membriiEchipa = await proiect.getMembriiEchipa({ id: req.params.membruEchipaId });
+      const membruEchipa = membriiEchipa.shift();
+      if (membruEchipa) {
+        membruEchipa.numeMembru = req.body.numeMembru;
+        membruEchipa.prenumeMembru = req.body.prenumeMembru;
+        membruEchipa.emailMembru = req.body.emailMembru;
+        await membruEchipa.save();
+        res.status(202).json({ message: 'Membrul echipei a fost actualizat cu succes!' });
+      } else {
+        res.status(404).json({ message: '404 - Membrul echipei nu a fost gasit!'});
+      }
+    } else {
+      res.status(404).json({ message: '404 - Proiectul nu a fost gasit!'});
+    }
+  } catch (error) {
+    next(error);
+  }
+});
+
+
+/**
+ * GET un membru al echipei dupa id dintr-o echipa anume dupa id
+ */
+app.get('/proiecte/:proiectId/membriiEchipa/:membruEchipaId', async (req, res, next) => {
+  try {
+    const proiect = await Proiect.findByPk(req.params.proiectId);
+    if (proiect) {
+      const membriiEchipa = await proiect.getMembriiEchipa({ id: req.params.membruEchipaId });
+      const membruEchipa = membriiEchipa.shift();
+      if (membruEchipa) {
+        res.status(202).json(membruEchipa);
+      } else {
+        res.status(404).json({ message: '404 - Membrul echipei nu a fost gasit!' })
+      }
+    } else {
+      res.status(404).json({ message: '404 - Proiectul nu a fost gasit!' })
+    }
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
+ * DELETE un membru al echipei dintr-un proiect
+ */
+app.delete('/proiecte/:proiectId/membriiEchipa/:membruEchipaId', async (req, res, next) => {
+  try {
+    const proiect = await Proiect.findByPk(req.params.proiectId);
+    if (proiect) {
+      const membriiEchipa = await proiect.getMembriiEchipa({ id: req.params.membruEchipaId });
+      const membruEchipa = membriiEchipa.shift();
+      if (membruEchipa) {
+        await membruEchipa.destroy()
+        res.status(202).json({ message: 'Membrul echipei a fost sters cu succes!'})
+      } else {
+        res.status(404).json({ message: '404 - Membrul echipei nu a fost gasit!' })
+      }
+    } else {
+      res.status(404).json({ message: '404 - Proiectul nu a fost gasit!' })
+    }
+  } catch (err) {
+    next(err);
+  }
+});
