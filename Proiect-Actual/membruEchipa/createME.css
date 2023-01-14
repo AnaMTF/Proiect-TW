@@ -1,0 +1,27 @@
+#titlu{
+    text-align: center;
+    border-radius: 5px;        
+    font-family:monospace;
+    font-size: 75px;
+    width: 100%;
+    color: #560bad;
+}
+.col{
+    text-align: center;
+}
+body {
+    background-color: #cdb4db !important;
+}
+#grad {
+    background-image: linear-gradient(to bottom right, violet , cyan);
+  }
+
+#grad1 {
+    background-image: linear-gradient(to bottom , #e2b8fa ,  #8ec1ee);
+}
+#createMembruEchipa{
+    background-color: #7b2cbf;
+    border:white;
+    color:black;
+}
+
