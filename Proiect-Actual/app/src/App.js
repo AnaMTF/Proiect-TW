@@ -21,21 +21,45 @@ const About = () =>
 
 const App = () => {
   return (
-    <Router>
-      <div>
-        <a href="./components/createBT">createBT</a>
-        <a href="./components/loginBT">loginBT</a>
-        <a href="./components/createME">createME</a>
-        <a href="./components/loginME">loginME</a>
-      </div>  
-
-      <Switch>
-        <Route path="/createBT" component={createBT} />
-        <Route path="/loginBT" component={loginBT} />
-        <Route path="/createME" component={createME} />
-        <Route path="/loginME" component={loginME} />
-      </Switch>
-    </Router>
+    <div className="App">
+    <header className="App-header">
+    <head>
+      <title></title>
+      <link href="welcome.css" rel="stylesheet" type="text/css" />
+      <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous" />
+      <script src="index.js"></script>
+    </head>
+    <body>
+    <div class="container">
+      <br/><br/><br/><br/>
+      <label id="titlu" style={{"font-weight":"bold"}}>Welcome</label>
+      <br/><br/>
+      <br />
+      <div class="row">
+          <div class="col" id="grad1" style={{"border": "0.2px solid #560bad"}}>
+              <br/>
+              <label style={{"font-weight":"bold" ,"font-size":"20px", "font-family":"monospace", "color":"#560bad"}}>Want to upload a project?</label>
+              <br/><br/>
+              <button class="btn btn-primary m-2" id="createMembruEchipa" onclick="createMembruEchipa()">Create MembruEchipa account</button>
+              <br/><br/>
+              <button class="btn btn-primary m-3" id="loginMembruEchipa" onclick="loginMembruEchipa()">Log in as MembruEchipa</button>
+              <br/>
+          </div>
+          <div class="col-1"></div>
+          <div class="col" id="grad1" style={{"border": "0.2px solid #560bad"}}>
+              <br/>
+              <label style={{"font-weight":"bold" ,"font-size":"20px", "font-family":"monospace", "color":"#560bad"}}>Want to test some bugs?</label>
+              <br/><br/>
+              <button class="btn btn-primary m-3" id="createBugTester" onclick="createBugTester()">Create BugTester account</button>
+              <br/><br/>
+              <button class="btn btn-primary m-3" id="loginBugTester" onclick="loginBugTester()">Log in as BugTester</button>
+              <br/>
+          </div>
+      </div>
+  </div>
+    </body>
+    </header>
+    </div>
     
   );
 }
