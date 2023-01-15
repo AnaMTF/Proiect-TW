@@ -1,0 +1,29 @@
+#titlu{
+    text-align: center;
+    border-radius: 5px;        
+    font-family:monospace;
+    font-size: 85px;
+    width: 100%;
+    color: #560bad;
+}
+.row{
+    position : absolute;
+    padding-left: 200px;
+}
+.col{
+    text-align: center;
+}
+#grad {
+    background-image: linear-gradient(to top left, violet , cyan);
+  }
+
+#grad1 {
+    background-image: linear-gradient(to top , #e2b8fa ,  #8ec1ee);
+}
+#ViewProiect, #UploadProiect{
+    background-color: #7b2cbf;
+    border:white;
+    width:70%;
+    color:black;
+}
+
